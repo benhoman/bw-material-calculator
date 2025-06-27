@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Logo } from './components/Logo';
 import './index.css';
 
 function App() {

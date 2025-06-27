@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="512" height="512" role="img" aria-label="BW YC logo">
+  <rect width="64" height="64" rx="12" fill="#000"></rect>
+  <text x="50%" y="40%" dominant-baseline="middle" text-anchor="middle" fill="#fff" font-family="Segoe UI, Tahoma, Geneva, Verdana, sans-serif" font-weight="700" font-size="20" letter-spacing="2">
+    BW
+  </text>
+  <text x="50%" y="65%" dominant-baseline="middle" text-anchor="middle" fill="#3B82F6" font-family="Segoe UI, Tahoma, Geneva, Verdana, sans-serif" font-weight="700" font-size="20" letter-spacing="2">
+    YC
+  </text>
+</svg>
