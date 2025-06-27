@@ -6,7 +6,7 @@ function App() {
   const [qp, setQp] = useState('');
   const [pps, setPps] = useState('');
   const [ts, setTs] = useState('');
-  const [tw, setTw] = useState('30'); // Tool Width for poundage - default 30
+  const [tw, setTw] = useState('31.5'); // Tool Width for poundage - default 30
   const [ti, setTi] = useState(''); // Tool Index for poundage
   const [ff, setFf] = useState('0.5'); // default - will change based on active tab
   const [op, setOp] = useState('10');  // default
@@ -17,11 +17,31 @@ function App() {
   const [showAdvanced, setShowAdvanced] = useState(false); // Toggle for advanced settings
   const [unitCost, setUnitCost] = useState(''); // Unit cost per yard/pound
   const [roundingIncrement, setRoundingIncrement] = useState(1); // Rounding increment for output
+  const [materialGauge, setMaterialGauge] = useState('0.020'); // Material gauge/thickness
+  const [isCustomGauge, setIsCustomGauge] = useState(false); // Toggle for custom gauge
 
   // Preset material factors with names
   const materialFactors = [
     { name: 'PVC', value: '0.0488' },
     { name: 'RPET', value: '0.0488' },
+    { name: 'Custom', value: 'custom' }
+  ];
+
+  // Preset gauge values with names
+  const gaugeOptions = [
+    { name: '0.005"', value: '0.005' },
+    { name: '0.007"', value: '0.007' },
+    { name: '0.010"', value: '0.010' },
+    { name: '0.015"', value: '0.015' },
+    { name: '0.020"', value: '0.020' },
+    { name: '0.022"', value: '0.022' },
+    { name: '0.024"', value: '0.024' },
+    { name: '0.025"', value: '0.025' },
+    { name: '0.030"', value: '0.030' },
+    { name: '0.040"', value: '0.040' },
+    { name: '0.060"', value: '0.060' },
+    { name: '0.080"', value: '0.080' },
+    { name: '0.125"', value: '0.125' },
     { name: 'Custom', value: 'custom' }
   ];
 
@@ -43,6 +63,17 @@ function App() {
   }, [activeTab, ff]);
 
   const parseFloatOrZero = (value) => parseFloat(value) || 0;
+
+  const isFormValid = () => {
+    // Check required fields based on active tab
+    const hasQuantityAndParts = qp.trim() !== '' && pps.trim() !== '';
+    
+    if (activeTab === 'yardage') {
+      return hasQuantityAndParts && ts.trim() !== '';
+    } else {
+      return hasQuantityAndParts && tw.trim() !== '' && ti.trim() !== '';
+    }
+  };
 
   const roundUpToIncrement = (value, increment) => {
     if (increment <= 0) return value;
@@ -76,9 +107,10 @@ function App() {
     const tiVal = parseFloatOrZero(ti); // Tool Index
     const ffVal = parseFloatOrZero(ff); // Fudge Factor
     const mfVal = parseFloatOrZero(materialFactor); // Material Factor
+    const mgVal = parseFloatOrZero(materialGauge); // Material Gauge
     if (sheetsRequired === 0) return 0;
-    // Use Tool Width and Tool Index instead of Tool Size
-    return (sheetsRequired * (twVal + tiVal + ffVal) / 36) * mfVal;
+    // Use Tool Width and Tool Index instead of Tool Size, include Material Gauge
+    return mgVal * twVal * (tiVal + ffVal) * mfVal * sheetsRequired;
   };
 
   const calculateTotalPounds = () => {
@@ -94,6 +126,16 @@ function App() {
     } else {
       setIsCustomFactor(false);
       setMaterialFactor(value);
+    }
+  };
+
+  const handleGaugeChange = (value) => {
+    if (value === 'custom') {
+      setIsCustomGauge(true);
+      setMaterialGauge('');
+    } else {
+      setIsCustomGauge(false);
+      setMaterialGauge(value);
     }
   };
 
@@ -150,46 +192,73 @@ function App() {
           <form className="space-y-3">
             {/* Main inputs in a more compact grid */}
             <div className="grid grid-cols-2 gap-3">
-              <CompactInput label="Quantity of Parts" value={qp} onChange={setQp} placeholder="e.g. 100" />
-              <CompactInput label="Parts Per Sheet" value={pps} onChange={setPps} placeholder="e.g. 25" />
+              <CompactInput label="Quantity of Parts" value={qp} onChange={setQp} placeholder="e.g. 100" required />
+              <CompactInput label="Parts Per Sheet" value={pps} onChange={setPps} placeholder="e.g. 25" required />
             </div>
             
             {/* Tool inputs */}
             {activeTab === 'yardage' ? (
-              <CompactInput label="Tool Size (inches)" value={ts} onChange={setTs} placeholder="e.g. 12" />
+              <CompactInput label="Tool Size (inches)" value={ts} onChange={setTs} placeholder="e.g. 12" required />
             ) : (
               <div className="grid grid-cols-2 gap-3">
-                <CompactInput label="Tool Width (inches)" value={tw} onChange={setTw} placeholder="default: 30" />
-                <CompactInput label="Tool Index (inches)" value={ti} onChange={setTi} placeholder="e.g. 8" />
+                <CompactInput label="Tool Width (inches)" value={tw} onChange={setTw} placeholder="default: 31.5" required />
+                <CompactInput label="Tool Index (inches)" value={ti} onChange={setTi} placeholder="e.g. 8" required />
               </div>
             )}
             
-            {/* Material Factor and Unit Cost in grid for Poundage */}
+            {/* Material Properties - only show for material tab */}
             {activeTab === 'material' && (
-              <div className="grid grid-cols-1 gap-3">
-                <div>
-                  <label className="block mb-1 text-sm font-medium">Material Factor</label>
-                  <select
-                    value={isCustomFactor ? 'custom' : materialFactor}
-                    onChange={e => handleMaterialFactorChange(e.target.value)}
-                    className="w-full px-2 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-400 dark:focus:ring-blue-600"
-                  >
-                    {materialFactors.map((factor) => (
-                      <option key={factor.name} value={factor.value}>
-                        {factor.name} {factor.value !== 'custom' && `(${factor.value})`}
-                      </option>
-                    ))}
-                  </select>
-                  {isCustomFactor && (
-                    <input
-                      type="number"
-                      step="0.1"
-                      value={materialFactor}
-                      onChange={e => setMaterialFactor(e.target.value)}
-                      placeholder="Enter custom factor"
-                      className="w-full mt-1 px-2 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-400 dark:focus:ring-blue-600"
-                    />
-                  )}
+              <div>
+                <h3 className="text-sm font-semibold text-gray-800 dark:text-gray-200 mb-2">Material Properties</h3>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block mb-1 text-sm font-medium">Factor</label>
+                    <select
+                      value={isCustomFactor ? 'custom' : materialFactor}
+                      onChange={e => handleMaterialFactorChange(e.target.value)}
+                      className="w-full px-2 py-2 text-base border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-400 dark:focus:ring-blue-600"
+                    >
+                      {materialFactors.map((factor) => (
+                        <option key={factor.name} value={factor.value}>
+                          {factor.name} {factor.value !== 'custom' && `(${factor.value})`}
+                        </option>
+                      ))}
+                    </select>
+                    {isCustomFactor && (
+                      <input
+                        type="number"
+                        step="0.1"
+                        value={materialFactor}
+                        onChange={e => setMaterialFactor(e.target.value)}
+                        placeholder="Enter custom factor"
+                        className="w-full mt-1 px-2 py-2 text-base border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-400 dark:focus:ring-blue-600"
+                      />
+                    )}
+                  </div>
+                  <div>
+                    <label className="block mb-1 text-sm font-medium">Gauge (inches)</label>
+                    <select
+                      value={isCustomGauge ? 'custom' : materialGauge}
+                      onChange={e => handleGaugeChange(e.target.value)}
+                      className="w-full px-2 py-2 text-base border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-400 dark:focus:ring-blue-600"
+                    >
+                      {gaugeOptions.map((gauge) => (
+                        <option key={gauge.name} value={gauge.value}>
+                          {gauge.name}
+                        </option>
+                      ))}
+                    </select>
+                    {isCustomGauge && (
+                      <input
+                        type="number"
+                        step="0.001"
+                        value={materialGauge}
+                        onChange={e => setMaterialGauge(e.target.value)}
+                        placeholder="Enter custom gauge"
+                        className="w-full mt-1 px-2 py-2 text-base border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-400 dark:focus:ring-blue-600"
+                      />
+                    )}
+                  </div>
                 </div>
               </div>
             )}
@@ -229,77 +298,121 @@ function App() {
           </form>
 
           {/* Rounding Selector - More Compact */}
-          <div className="mt-4 mb-3">
-            <label className="block mb-1 text-xs font-medium">Round Up To Next:</label>
-            <div className="flex rounded-md shadow-sm">
-              {[1, 100, 1000].map((increment, index) => (
-                <button
-                  key={increment}
-                  onClick={() => setRoundingIncrement(increment)}
-                  className={`px-3 py-1.5 text-xs font-medium transition-colors flex-1 ${
-                    index === 0 ? 'rounded-l-md' : ''
-                  } ${
-                    index === 2 ? 'rounded-r-md' : ''
-                  } ${
-                    roundingIncrement === increment
-                      ? 'bg-blue-600 dark:bg-blue-500 text-white z-10 relative'
-                      : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
-                  } ${
-                    index !== 0 ? '-ml-px' : ''
-                  }`}
-                >
-                  {increment === 1 ? 'Exact' : increment.toLocaleString()}
-                </button>
-              ))}
+          {isFormValid() && (
+            <div className="mt-4 mb-3">
+              <label className="block mb-1 text-xs font-medium">Round Up To Next:</label>
+              <div className="flex rounded-md shadow-sm">
+                {[1, 100, 1000].map((increment, index) => (
+                  <button
+                    key={increment}
+                    onClick={() => setRoundingIncrement(increment)}
+                    className={`px-3 py-1.5 text-xs font-medium transition-colors flex-1 ${
+                      index === 0 ? 'rounded-l-md' : ''
+                    } ${
+                      index === 2 ? 'rounded-r-md' : ''
+                    } ${
+                      roundingIncrement === increment
+                        ? 'bg-blue-600 dark:bg-blue-500 text-white z-10 relative'
+                        : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
+                    } ${
+                      index !== 0 ? '-ml-px' : ''
+                    }`}
+                  >
+                    {increment === 1 ? 'Exact' : increment.toLocaleString()}
+                  </button>
+                ))}
+              </div>
+              {/* Rounding Preview */}
+              <div className="mt-1 text-xs text-gray-500 dark:text-gray-400 flex">
+                {activeTab === 'yardage' ? (
+                  <>
+                    <div className="flex-1 text-center">
+                      {Math.round(totalYards).toLocaleString()} yds
+                    </div>
+                    <div className="flex-1 text-center">
+                      {roundUpToIncrement(totalYards, 100).toLocaleString()} yds
+                    </div>
+                    <div className="flex-1 text-center">
+                      {roundUpToIncrement(totalYards, 1000).toLocaleString()} yds
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="flex-1 text-center">
+                      {Math.round(totalPounds).toLocaleString()} lbs
+                    </div>
+                    <div className="flex-1 text-center">
+                      {roundUpToIncrement(totalPounds, 100).toLocaleString()} lbs
+                    </div>
+                    <div className="flex-1 text-center">
+                      {roundUpToIncrement(totalPounds, 1000).toLocaleString()} lbs
+                    </div>
+                  </>
+                )}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Results - More Compact */}
-          <div className="mt-4 space-y-3 text-lg font-semibold tracking-tight">
-            {activeTab === 'yardage' ? (
-              <>
-                <div>
-                  <span className="block text-gray-700 dark:text-gray-300 text-sm">Minimum Required:</span>
-                  <div className="flex items-center justify-between">
-                    <span className="text-2xl text-blue-600 dark:text-blue-400">{Math.round(roundedMinYards)} yds</span>
-                    {unitCost && parseFloatOrZero(unitCost) > 0 && (
-                      <span className="text-lg text-blue-600 dark:text-blue-400">${(roundedMinYards * parseFloatOrZero(unitCost)).toFixed(2)}</span>
-                    )}
+          {isFormValid() ? (
+            <div className="mt-4 space-y-3 text-lg font-semibold tracking-tight">
+              {activeTab === 'yardage' ? (
+                <>
+                  <div>
+                    <span className="block text-gray-700 dark:text-gray-300 text-sm">Minimum Required:</span>
+                    <div className="flex items-center justify-between">
+                      <span className="text-2xl text-blue-600 dark:text-blue-400">{Math.round(roundedMinYards).toLocaleString()} yds</span>
+                      {unitCost && parseFloatOrZero(unitCost) > 0 && (
+                        <span className="text-lg text-blue-600 dark:text-blue-400">${(roundedMinYards * parseFloatOrZero(unitCost)).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                      )}
+                    </div>
                   </div>
-                </div>
-                <div>
-                  <span className="block text-gray-700 dark:text-gray-300 text-sm">Total (with overage):</span>
-                  <div className="flex items-center justify-between">
-                    <span className="text-2xl text-green-600 dark:text-green-400">{Math.round(roundedTotalYards)} yds</span>
-                    {unitCost && parseFloatOrZero(unitCost) > 0 && (
-                      <span className="text-lg text-green-600 dark:text-green-400">${(roundedTotalYards * parseFloatOrZero(unitCost)).toFixed(2)}</span>
-                    )}
+                  <div>
+                    <span className="block text-gray-700 dark:text-gray-300 text-sm">Total (with overage):</span>
+                    <div className="flex items-center justify-between">
+                      <span className="text-2xl text-green-600 dark:text-green-400">{Math.round(roundedTotalYards).toLocaleString()} yds</span>
+                      {unitCost && parseFloatOrZero(unitCost) > 0 && (
+                        <span className="text-lg text-green-600 dark:text-green-400">${(roundedTotalYards * parseFloatOrZero(unitCost)).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                      )}
+                    </div>
                   </div>
-                </div>
-              </>
-            ) : (
-              <>
-                <div>
-                  <span className="block text-gray-700 dark:text-gray-300 text-sm">Minimum Required:</span>
-                  <div className="flex items-center justify-between">
-                    <span className="text-2xl text-blue-600 dark:text-blue-400">{Math.round(roundedMinPounds)} lbs</span>
-                    {unitCost && parseFloatOrZero(unitCost) > 0 && (
-                      <span className="text-lg text-blue-600 dark:text-blue-400">${(roundedMinPounds * parseFloatOrZero(unitCost)).toFixed(2)}</span>
-                    )}
+                </>
+              ) : (
+                <>
+                  <div>
+                    <span className="block text-gray-700 dark:text-gray-300 text-sm">Minimum Required:</span>
+                    <div className="flex items-center justify-between">
+                      <span className="text-2xl text-blue-600 dark:text-blue-400">{Math.round(roundedMinPounds).toLocaleString()} lbs</span>
+                      {unitCost && parseFloatOrZero(unitCost) > 0 && (
+                        <span className="text-lg text-blue-600 dark:text-blue-400">${(roundedMinPounds * parseFloatOrZero(unitCost)).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                      )}
+                    </div>
                   </div>
-                </div>
-                <div>
-                  <span className="block text-gray-700 dark:text-gray-300 text-sm">Total (with overage):</span>
-                  <div className="flex items-center justify-between">
-                    <span className="text-2xl text-green-600 dark:text-green-400">{Math.round(roundedTotalPounds)} lbs</span>
-                    {unitCost && parseFloatOrZero(unitCost) > 0 && (
-                      <span className="text-lg text-green-600 dark:text-green-400">${(roundedTotalPounds * parseFloatOrZero(unitCost)).toFixed(2)}</span>
-                    )}
+                  <div>
+                    <span className="block text-gray-700 dark:text-gray-300 text-sm">Total (with overage):</span>
+                    <div className="flex items-center justify-between">
+                      <span className="text-2xl text-green-600 dark:text-green-400">{Math.round(roundedTotalPounds).toLocaleString()} lbs</span>
+                      {unitCost && parseFloatOrZero(unitCost) > 0 && (
+                        <span className="text-lg text-green-600 dark:text-green-400">${(roundedTotalPounds * parseFloatOrZero(unitCost)).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                      )}
+                    </div>
                   </div>
-                </div>
-              </>
-            )}
-          </div>
+                </>
+              )}
+            </div>
+          ) : (
+            <div className="mt-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg text-center">
+              <span className="text-sm text-gray-600 dark:text-gray-400">
+                Please fill in all required fields to see results
+              </span>
+              <div className="mt-2 text-xs text-gray-500 dark:text-gray-500">
+                {activeTab === 'yardage' 
+                  ? 'Required: Quantity of Parts, Parts Per Sheet, Tool Size'
+                  : 'Required: Quantity of Parts, Parts Per Sheet, Tool Width, Tool Index'
+                }
+              </div>
+            </div>
+          )}
 
         </div>
       </div>
@@ -307,16 +420,23 @@ function App() {
   );
 }
 
-function CompactInput({ label, value, onChange, placeholder }) {
+function CompactInput({ label, value, onChange, placeholder, required = false }) {
   return (
     <div>
-      <label className="block mb-1 text-sm font-medium">{label}</label>
+      <label className="block mb-1 text-sm font-medium">
+        {label}
+        {required && <span className="text-red-500 ml-1">*</span>}
+      </label>
       <input
         type="number"
         value={value}
         onChange={e => onChange(e.target.value)}
         placeholder={placeholder}
-        className="w-full px-2 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-400 dark:focus:ring-blue-600"
+        className={`w-full px-2 py-2 text-base border rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-400 dark:focus:ring-blue-600 ${
+          required && !value.trim() 
+            ? 'border-red-100 dark:border-red-900' 
+            : 'border-gray-300 dark:border-gray-700'
+        }`}
       />
     </div>
   );
