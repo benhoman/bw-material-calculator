@@ -1,15 +1,15 @@
 {
   "files": {
-    "main.css": "/bw-material-calculator/static/css/main.8c0eac13.css",
-    "main.js": "/bw-material-calculator/static/js/main.8247b984.js",
+    "main.css": "/bw-material-calculator/static/css/main.a67febcc.css",
+    "main.js": "/bw-material-calculator/static/js/main.7b540030.js",
     "static/js/453.a8076bf0.chunk.js": "/bw-material-calculator/static/js/453.a8076bf0.chunk.js",
     "index.html": "/bw-material-calculator/index.html",
-    "main.8c0eac13.css.map": "/bw-material-calculator/static/css/main.8c0eac13.css.map",
-    "main.8247b984.js.map": "/bw-material-calculator/static/js/main.8247b984.js.map",
+    "main.a67febcc.css.map": "/bw-material-calculator/static/css/main.a67febcc.css.map",
+    "main.7b540030.js.map": "/bw-material-calculator/static/js/main.7b540030.js.map",
     "453.a8076bf0.chunk.js.map": "/bw-material-calculator/static/js/453.a8076bf0.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.8c0eac13.css",
-    "static/js/main.8247b984.js"
+    "static/css/main.a67febcc.css",
+    "static/js/main.7b540030.js"
   ]
 }
