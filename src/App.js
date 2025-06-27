@@ -111,22 +111,23 @@ function App() {
   return (
     <div className={darkMode ? 'dark' : ''}>
       <div className="min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white transition-colors">
-        <div className="max-w-xl mx-auto p-6">
-          <div className="flex justify-between items-center mb-6">
-            <h1 className="text-3xl font-bold">Material Calculator</h1>
+        <div className="max-w-md mx-auto p-4">
+          {/* Compact Header */}
+          <div className="flex justify-between items-center mb-4">
+            <h1 className="text-2xl font-bold">Material Calculator</h1>
             <button
               onClick={() => setDarkMode(!darkMode)}
-              className="px-3 py-1 rounded bg-gray-300 dark:bg-gray-700 text-sm"
+              className="px-2 py-1 rounded bg-gray-300 dark:bg-gray-700 text-xs"
             >
-              {darkMode ? '☀️ Light Mode' : '🌙 Dark Mode'}
+              {darkMode ? '☀️' : '🌙'}
             </button>
           </div>
 
-          {/* Tab Navigation */}
-          <div className="flex mb-6 bg-gray-200 dark:bg-gray-800 rounded-lg p-1">
+          {/* Tab Navigation - More Compact */}
+          <div className="flex mb-4 bg-gray-200 dark:bg-gray-800 rounded-lg p-1">
             <button
               onClick={() => setActiveTab('yardage')}
-              className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
+              className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
                 activeTab === 'yardage'
                   ? 'bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 shadow-sm'
                   : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
@@ -136,7 +137,7 @@ function App() {
             </button>
             <button
               onClick={() => setActiveTab('material')}
-              className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
+              className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
                 activeTab === 'material'
                   ? 'bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 shadow-sm'
                   : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
@@ -146,66 +147,71 @@ function App() {
             </button>
           </div>
 
-          <form className="space-y-4">
-            <Input label="Quantity of Parts" value={qp} onChange={setQp} placeholder="e.g. 100" />
-            <Input label="Parts Per Sheet" value={pps} onChange={setPps} placeholder="e.g. 25" />
+          <form className="space-y-3">
+            {/* Main inputs in a more compact grid */}
+            <div className="grid grid-cols-2 gap-3">
+              <CompactInput label="Quantity of Parts" value={qp} onChange={setQp} placeholder="e.g. 100" />
+              <CompactInput label="Parts Per Sheet" value={pps} onChange={setPps} placeholder="e.g. 25" />
+            </div>
             
-            {/* Conditional Tool inputs based on active tab */}
+            {/* Tool inputs */}
             {activeTab === 'yardage' ? (
-              <Input label="Tool Size (inches)" value={ts} onChange={setTs} placeholder="e.g. 12" />
+              <CompactInput label="Tool Size (inches)" value={ts} onChange={setTs} placeholder="e.g. 12" />
             ) : (
-              <>
-                <Input label="Tool Width (inches)" value={tw} onChange={setTw} placeholder="default: 30" />
-                <Input label="Tool Index (inches)" value={ti} onChange={setTi} placeholder="e.g. 8" />
-              </>
-            )}
-            
-            {/* Material Factor - only show for material tab - moved above advanced settings */}
-            {activeTab === 'material' && (
-              <div>
-                <label className="block mb-1 font-medium">Material Factor</label>
-                <select
-                  value={isCustomFactor ? 'custom' : materialFactor}
-                  onChange={e => handleMaterialFactorChange(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-400 dark:focus:ring-blue-600"
-                >
-                  {materialFactors.map((factor) => (
-                    <option key={factor.name} value={factor.value}>
-                      {factor.name} {factor.value !== 'custom' && `(${factor.value})`}
-                    </option>
-                  ))}
-                </select>
-                {isCustomFactor && (
-                  <input
-                    type="number"
-                    step="0.1"
-                    value={materialFactor}
-                    onChange={e => setMaterialFactor(e.target.value)}
-                    placeholder="Enter custom factor"
-                    className="w-full mt-2 px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-400 dark:focus:ring-blue-600"
-                  />
-                )}
+              <div className="grid grid-cols-2 gap-3">
+                <CompactInput label="Tool Width (inches)" value={tw} onChange={setTw} placeholder="default: 30" />
+                <CompactInput label="Tool Index (inches)" value={ti} onChange={setTi} placeholder="e.g. 8" />
               </div>
             )}
             
-            {/* Unit Cost - show for both tabs */}
-            <Input 
+            {/* Material Factor and Unit Cost in grid for Poundage */}
+            {activeTab === 'material' && (
+              <div className="grid grid-cols-1 gap-3">
+                <div>
+                  <label className="block mb-1 text-sm font-medium">Material Factor</label>
+                  <select
+                    value={isCustomFactor ? 'custom' : materialFactor}
+                    onChange={e => handleMaterialFactorChange(e.target.value)}
+                    className="w-full px-2 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-400 dark:focus:ring-blue-600"
+                  >
+                    {materialFactors.map((factor) => (
+                      <option key={factor.name} value={factor.value}>
+                        {factor.name} {factor.value !== 'custom' && `(${factor.value})`}
+                      </option>
+                    ))}
+                  </select>
+                  {isCustomFactor && (
+                    <input
+                      type="number"
+                      step="0.1"
+                      value={materialFactor}
+                      onChange={e => setMaterialFactor(e.target.value)}
+                      placeholder="Enter custom factor"
+                      className="w-full mt-1 px-2 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-400 dark:focus:ring-blue-600"
+                    />
+                  )}
+                </div>
+              </div>
+            )}
+            
+            {/* Unit Cost */}
+            <CompactInput 
               label={`Unit Cost ($ per ${activeTab === 'yardage' ? 'yd' : 'lb'})`} 
               value={unitCost} 
               onChange={setUnitCost} 
               placeholder="e.g. 2.50" 
             />
             
-            {/* Material Allowances Toggle */}
-            <div className="pt-2">
+            {/* Material Allowances Toggle - More Compact */}
+            <div className="pt-1">
               <button
                 type="button"
                 onClick={() => setShowAdvanced(!showAdvanced)}
-                className="flex items-center text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+                className="flex items-center text-xs text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
               >
                 <span className="mr-1">⚙️</span>
                 Material Allowances
-                <span className="ml-2 text-xs">
+                <span className="ml-1 text-xs">
                   {showAdvanced ? '▼' : '▶'}
                 </span>
               </button>
@@ -213,22 +219,24 @@ function App() {
             
             {/* Material Allowances - Collapsible */}
             {showAdvanced && (
-              <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 space-y-4">
-                <Input label="Fudge Factor (inches)" value={ff} onChange={setFf} placeholder={activeTab === 'yardage' ? 'default: 0.5' : 'default: 1.0'} />
-                <Input label="Overage Percentage (%)" value={op} onChange={setOp} placeholder="default: 10" />
+              <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 space-y-3">
+                <div className="grid grid-cols-2 gap-3">
+                  <CompactInput label="Fudge Factor (inches)" value={ff} onChange={setFf} placeholder={activeTab === 'yardage' ? 'default: 0.5' : 'default: 1.0'} />
+                  <CompactInput label="Overage Percentage (%)" value={op} onChange={setOp} placeholder="default: 10" />
+                </div>
               </div>
             )}
           </form>
 
-          {/* Rounding Selector - Always Visible */}
-          <div className="mt-6 mb-4">
-            <label className="block mb-2 text-sm font-medium">Round Up To Next:</label>
+          {/* Rounding Selector - More Compact */}
+          <div className="mt-4 mb-3">
+            <label className="block mb-1 text-xs font-medium">Round Up To Next:</label>
             <div className="flex rounded-md shadow-sm">
               {[1, 100, 1000].map((increment, index) => (
                 <button
                   key={increment}
                   onClick={() => setRoundingIncrement(increment)}
-                  className={`px-4 py-2 text-sm font-medium transition-colors flex-1 ${
+                  className={`px-3 py-1.5 text-xs font-medium transition-colors flex-1 ${
                     index === 0 ? 'rounded-l-md' : ''
                   } ${
                     index === 2 ? 'rounded-r-md' : ''
@@ -246,49 +254,49 @@ function App() {
             </div>
           </div>
 
-          {/* Results */}
-          <div className="mt-8 space-y-4 text-2xl font-semibold tracking-tight">
+          {/* Results - More Compact */}
+          <div className="mt-4 space-y-3 text-lg font-semibold tracking-tight">
             {activeTab === 'yardage' ? (
               <>
-                <p>
-                  <span className="block text-gray-700 dark:text-gray-300">Minimum Required:</span>
+                <div>
+                  <span className="block text-gray-700 dark:text-gray-300 text-sm">Minimum Required:</span>
                   <div className="flex items-center justify-between">
-                    <span className="text-4xl text-blue-600 dark:text-blue-400">{Math.round(roundedMinYards)} yds</span>
+                    <span className="text-2xl text-blue-600 dark:text-blue-400">{Math.round(roundedMinYards)} yds</span>
                     {unitCost && parseFloatOrZero(unitCost) > 0 && (
-                      <span className="text-2xl text-blue-600 dark:text-blue-400">${(roundedMinYards * parseFloatOrZero(unitCost)).toFixed(2)}</span>
+                      <span className="text-lg text-blue-600 dark:text-blue-400">${(roundedMinYards * parseFloatOrZero(unitCost)).toFixed(2)}</span>
                     )}
                   </div>
-                </p>
-                <p>
-                  <span className="block text-gray-700 dark:text-gray-300">Total (with overage):</span>
+                </div>
+                <div>
+                  <span className="block text-gray-700 dark:text-gray-300 text-sm">Total (with overage):</span>
                   <div className="flex items-center justify-between">
-                    <span className="text-4xl text-green-600 dark:text-green-400">{Math.round(roundedTotalYards)} yds</span>
+                    <span className="text-2xl text-green-600 dark:text-green-400">{Math.round(roundedTotalYards)} yds</span>
                     {unitCost && parseFloatOrZero(unitCost) > 0 && (
-                      <span className="text-2xl text-green-600 dark:text-green-400">${(roundedTotalYards * parseFloatOrZero(unitCost)).toFixed(2)}</span>
+                      <span className="text-lg text-green-600 dark:text-green-400">${(roundedTotalYards * parseFloatOrZero(unitCost)).toFixed(2)}</span>
                     )}
                   </div>
-                </p>
+                </div>
               </>
             ) : (
               <>
-                <p>
-                  <span className="block text-gray-700 dark:text-gray-300">Minimum Required:</span>
+                <div>
+                  <span className="block text-gray-700 dark:text-gray-300 text-sm">Minimum Required:</span>
                   <div className="flex items-center justify-between">
-                    <span className="text-4xl text-blue-600 dark:text-blue-400">{Math.round(roundedMinPounds)} lbs</span>
+                    <span className="text-2xl text-blue-600 dark:text-blue-400">{Math.round(roundedMinPounds)} lbs</span>
                     {unitCost && parseFloatOrZero(unitCost) > 0 && (
-                      <span className="text-2xl text-blue-600 dark:text-blue-400">${(roundedMinPounds * parseFloatOrZero(unitCost)).toFixed(2)}</span>
+                      <span className="text-lg text-blue-600 dark:text-blue-400">${(roundedMinPounds * parseFloatOrZero(unitCost)).toFixed(2)}</span>
                     )}
                   </div>
-                </p>
-                <p>
-                  <span className="block text-gray-700 dark:text-gray-300">Total (with overage):</span>
+                </div>
+                <div>
+                  <span className="block text-gray-700 dark:text-gray-300 text-sm">Total (with overage):</span>
                   <div className="flex items-center justify-between">
-                    <span className="text-4xl text-green-600 dark:text-green-400">{Math.round(roundedTotalPounds)} lbs</span>
+                    <span className="text-2xl text-green-600 dark:text-green-400">{Math.round(roundedTotalPounds)} lbs</span>
                     {unitCost && parseFloatOrZero(unitCost) > 0 && (
-                      <span className="text-2xl text-green-600 dark:text-green-400">${(roundedTotalPounds * parseFloatOrZero(unitCost)).toFixed(2)}</span>
+                      <span className="text-lg text-green-600 dark:text-green-400">${(roundedTotalPounds * parseFloatOrZero(unitCost)).toFixed(2)}</span>
                     )}
                   </div>
-                </p>
+                </div>
               </>
             )}
           </div>
@@ -299,16 +307,16 @@ function App() {
   );
 }
 
-function Input({ label, value, onChange, placeholder }) {
+function CompactInput({ label, value, onChange, placeholder }) {
   return (
     <div>
-      <label className="block mb-1 font-medium">{label}</label>
+      <label className="block mb-1 text-sm font-medium">{label}</label>
       <input
         type="number"
         value={value}
         onChange={e => onChange(e.target.value)}
         placeholder={placeholder}
-        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-400 dark:focus:ring-blue-600"
+        className="w-full px-2 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-400 dark:focus:ring-blue-600"
       />
     </div>
   );
