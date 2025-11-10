@@ -24,6 +24,7 @@ function App() {
   const materialFactors = [
     { name: 'PVC', value: '0.0488' },
     { name: 'RPET', value: '0.0488' },
+    { name: 'HIPS', value: '0.07856' },
     { name: 'Custom', value: 'custom' }
   ];
 
